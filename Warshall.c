@@ -1,44 +1,70 @@
-#include <stdio.h>
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
 
-void imprimeMatriz(float Media[501][501]){
-	for(int x = 0; x < 501; x++){
-		for(int y = 0; y < 501; y++){
-			printf("%f | ", Media[x][y]);
+// TODO Problemas encontrados na é q a matriz comeca em 0 e vai ate 500
+// TODO Deve ser implementado um metodo para resetar a matriz
+
+float **alocmat(int lin, int col){
+	int i;
+	float **m;
+	m=(float**)malloc(sizeof(float*)*lin);
+	for(i=0;i<lin;i++){
+		m[i]=(float*)malloc(sizeof(float)*col);
+	}
+	return m;
+}
+
+void imprimeMatriz(int tamMatriz, float matriz[tamMatriz][tamMatriz]){
+	int posX, posY;
+	for(posX = 0; posX < tamMatriz; posX++){
+		for(posY = 0; posY < tamMatriz; posY++){
+			printf("%f | ", matriz[posX][posY]);
 		}
 		printf("\n");
 	}
 }
 
-void main()
-{
-	FILE *arq;
-  	char Linha[100];
-  	char *result;
-  	int x, y;
-  	float asd;
-	float Media[501][501] = {0};
-  	// Abre um arquivo TEXTO para LEITURA
-  	arq = fopen("grafo_500.g", "rt");
-  	if (arq == NULL)  // Se houve erro na abertura
-  	{
-    	printf("Problemas na abertura do arquivo\n");
-     	return;
+int importarArquivo(){
+	
+	FILE *arquivo;
+	char nomeArquivo[20] = "grafo_500.g";
+	char linha[100], penultimaLinha[100];
+  	int posX, posY, tamMatriz;
+  	float peso;
+
+	// Realiza a abertura do arquivo
+	if ((arquivo = fopen(nomeArquivo, "r")) == NULL){
+        printf("Erro na abertura do arquivo \n");
+        exit(1);
+    }
+    
+	// Obtem tamanho da matriz
+	do {
+		strcpy(penultimaLinha, linha);
+		fgets(linha, 100, arquivo);
+	} while (strcmp(linha, "#arestas\n") != 0);
+
+	tamMatriz = atoi(penultimaLinha); // Transforma tamanho da matriz para int
+	printf("Tamanho matriz: %i", tamMatriz);
+	
+	float matriz[tamMatriz+1][tamMatriz+1];
+
+	//float **mat=alocmat(tamMatriz,tamMatriz);
+	
+	while (!feof(arquivo)){
+    	fscanf(arquivo, "%i", &posX); 
+		fscanf(arquivo, "%i", &posY);
+		fscanf(arquivo, "%f", &peso);
+		fgets(linha, 100, arquivo);
+		matriz[posX][posY] = peso;
   	}
-	while (!feof(arq)){
-		printf("Iniciando ");
-		fscanf(arq, "%c", &Linha);
-		if(strcmp(Linha, "#") == 0){
-			printf("Aqui");
-		}
-	}
-  	while (!feof(arq))
-  	{
-    	fscanf(arq, "%i", &x); 
-		fscanf(arq, "%i", &y);
-		fscanf(arq, "%f", &asd);
-		fscanf(arq, "%c", &Linha); // Le resto do arquivo '\n'
-		Media[x][y] = asd;
-  	}
-	// imprimeMatriz(Media);
-  	fclose(arq);
+	
+	imprimeMatriz(tamMatriz, matriz);
+  	fclose(arquivo);
+	printf("\n\n");
 }
+ 
+ int main(){
+ 	importarArquivo();
+ }
