@@ -1,23 +1,44 @@
 #include <stdio.h>
-#include <pthread.h>
-#include <stdlib.h>
 
-int main(){
+void imprimeMatriz(float Media[501][501]){
+	for(int x = 0; x < 501; x++){
+		for(int y = 0; y < 501; y++){
+			printf("%f | ", Media[x][y]);
+		}
+		printf("\n");
+	}
+}
 
-	int matriz[3][3];
-	
-	int i,k;
-	
-	for(i=0; i<3; i++){
-		for(k=0; k<3; k++){
-			matriz[i][k]= 9999;
-	    }
+void main()
+{
+	FILE *arq;
+  	char Linha[100];
+  	char *result;
+  	int x, y;
+  	float asd;
+	float Media[501][501] = {0};
+  	// Abre um arquivo TEXTO para LEITURA
+  	arq = fopen("grafo_500.g", "rt");
+  	if (arq == NULL)  // Se houve erro na abertura
+  	{
+    	printf("Problemas na abertura do arquivo\n");
+     	return;
+  	}
+	while (!feof(arq)){
+		printf("Iniciando ");
+		fscanf(arq, "%c", &Linha);
+		if(strcmp(Linha, "#") == 0){
+			printf("Aqui");
+		}
 	}
-	
-	for(i=0; i<3; i++){
-		for(k=0; k<3; k++){
-			printf("%d |", matriz[i][k]);
-	    }
-	    printf("\n");
-	}
+  	while (!feof(arq))
+  	{
+    	fscanf(arq, "%i", &x); 
+		fscanf(arq, "%i", &y);
+		fscanf(arq, "%f", &asd);
+		fscanf(arq, "%c", &Linha); // Le resto do arquivo '\n'
+		Media[x][y] = asd;
+  	}
+	// imprimeMatriz(Media);
+  	fclose(arq);
 }
