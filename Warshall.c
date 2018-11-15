@@ -1,9 +1,8 @@
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-// TODO Problemas encontrados na é q a matriz comeca em 0 e vai ate 500
-// TODO Deve ser implementado um metodo para resetar a matriz
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 float **alocmat(int lin, int col){
 	int i;
@@ -15,20 +14,10 @@ float **alocmat(int lin, int col){
 	return m;
 }
 
-void imprimeMatriz(int tamMatriz, float matriz[tamMatriz][tamMatriz]){
-	int posX, posY;
-	for(posX = 0; posX < tamMatriz; posX++){
-		for(posY = 0; posY < tamMatriz; posY++){
-			printf("%f | ", matriz[posX][posY]);
-		}
-		printf("\n");
-	}
-}
-
-int importarArquivo(){
-	
+int main(){
+	int k,i,j,m,n;
 	FILE *arquivo;
-	char nomeArquivo[20] = "grafo_500.g";
+	char nomeArquivo[20] = "grafo.g";
 	char linha[100], penultimaLinha[100];
   	int posX, posY, tamMatriz;
   	float peso;
@@ -45,26 +34,47 @@ int importarArquivo(){
 		fgets(linha, 100, arquivo);
 	} while (strcmp(linha, "#arestas\n") != 0);
 
-	tamMatriz = atoi(penultimaLinha); // Transforma tamanho da matriz para int
+	tamMatriz = atoi(penultimaLinha)+1; // Transforma tamanho da matriz para int
 	printf("Tamanho matriz: %i", tamMatriz);
-	
-	float matriz[tamMatriz+1][tamMatriz+1];
 
-	//float **mat=alocmat(tamMatriz,tamMatriz);
-	
+	float **mat=alocmat(tamMatriz,tamMatriz);
+	float **matB=alocmat(tamMatriz,tamMatriz);
+	for(i=0;i<tamMatriz;i++){
+		for(j=0;j<tamMatriz;j++){
+			mat[i][j]=99999;
+			// printf("%d,%d=%f\n",i,j,mat[i][j]);
+		}
+	}
+	for(i=0;i<tamMatriz;i++){
+		for(j=0;j<tamMatriz;j++){
+			matB[i][j]=99999;
+			// printf("%d,%d=%f\n",i,j,mat[i][j]);
+		}
+	}
+	printf("\n");
+
 	while (!feof(arquivo)){
     	fscanf(arquivo, "%i", &posX); 
 		fscanf(arquivo, "%i", &posY);
 		fscanf(arquivo, "%f", &peso);
 		fgets(linha, 100, arquivo);
-		matriz[posX][posY] = peso;
+		mat[posX][posY] = peso;
   	}
-	
-	imprimeMatriz(tamMatriz, matriz);
-  	fclose(arquivo);
-	printf("\n\n");
+
+	for(k=1; k<tamMatriz; k++){
+		matB = mat;
+		for(i=1; i<tamMatriz; i++){
+			for(j=1; j<tamMatriz; j++){
+				mat[i][j] = MIN(matB[i][j], matB[i][k] + matB[k][j]);
+			}
+		}
+	}
+
+	for(i=1;i<tamMatriz;i++){
+		for(j=1;j<tamMatriz;j++){
+			printf("%f \t",mat[i][j]);
+		}
+		printf("\n");
+	}
+
 }
- 
- int main(){
- 	importarArquivo();
- }
