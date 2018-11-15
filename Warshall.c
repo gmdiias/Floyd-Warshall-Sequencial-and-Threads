@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 /*
 *	Trabalho de Compiladores Floyd Warshall
@@ -12,11 +13,15 @@
 */
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y)) // Calcula minimo entre dos valores
-#define CAMINHOARQUIVO "grafo_500.g" // Define caminho do arquivo
+#define CAMINHOARQUIVO "Teste/grafo_500.g" // Define caminho do arquivo
+
+float **mat;
+float **matB;
+int tamMatriz;
+int i, j, k;
 
 // Funcao para alocar matriz na memoria
 float **alocmat(int lin, int col){
-	int i;
 	float **m;
 	m=(float**)malloc(sizeof(float*)*lin);
 	for(i=0;i<lin;i++){
@@ -26,7 +31,6 @@ float **alocmat(int lin, int col){
 }
 
 void inicializaMatriz(int tamMatriz, float **mat){
-	int i, j;
 	for(i=1;i<tamMatriz;i++){
 		for(j=1;j<tamMatriz;j++){
 			if(i == j) {
@@ -39,8 +43,7 @@ void inicializaMatriz(int tamMatriz, float **mat){
 	}
 }
 
-void imprimeMatriz(int tamMatriz, float **mat){
-	int i, j;
+void imprimeMatriz(){
 	for(i=1;i<tamMatriz;i++){
 		for(j=1;j<tamMatriz;j++){
 			printf("%f \t", mat[i][j]);
@@ -49,15 +52,28 @@ void imprimeMatriz(int tamMatriz, float **mat){
 	}
 }
 
+void *thread_hello(void *arg){
+	int coluna;
+	int linha = (int)arg;
+	printf("executando thread k = %i, linha = %i, coluna = %i\n", k, linha, coluna);
+	for(coluna=1; coluna<tamMatriz; coluna++){
+		mat[linha][coluna] = MIN(mat[linha][coluna], matB[linha][k] + matB[k][coluna]);
+	}
+	pthread_exit(0);
+}
+
 // Calcula menor caminho entre os vertices da matriz
-void floydWarshall(int tamMatriz, float **mat, float **matB){
-	int i, j, k;
+void floydWarshall(){
+	pthread_t *t=(pthread_t*)malloc(tamMatriz*sizeof(pthread_t));
 	for(k=1; k<tamMatriz; k++){
 		matB = mat;
+		printf("%i\n", k);
 		for(i=1; i<tamMatriz; i++){
-			for(j=1; j<tamMatriz; j++){
-				mat[i][j] = MIN(matB[i][j], matB[i][k] + matB[k][j]);
-			}
+			printf("criei a thread %i\n", i);
+			pthread_create(&t[i],NULL,thread_hello,(void*)i);
+		}
+		for(i=1; i<tamMatriz; i++){
+			pthread_join(t[i],NULL);
 		}
 	}
 }
@@ -65,7 +81,7 @@ void floydWarshall(int tamMatriz, float **mat, float **matB){
 int main(){
 	FILE *arquivo;
 	char linha[100], penultimaLinha[100];
-	int k, i, j, tamMatriz, posX, posY;
+	int posX, posY;
   	float peso;
 
 	// Realiza a abertura do arquivo
@@ -83,8 +99,8 @@ int main(){
 	tamMatriz = atoi(penultimaLinha)+1; // Transforma tamanho da matriz para int
 
 	// Aloca memoria para matrizes
-	float **mat=alocmat(tamMatriz,tamMatriz);
-	float **matB=alocmat(tamMatriz,tamMatriz);
+	mat=alocmat(tamMatriz,tamMatriz);
+	matB=alocmat(tamMatriz,tamMatriz);
 
 	// Inicializa as matrizes
 	inicializaMatriz(tamMatriz, mat);
