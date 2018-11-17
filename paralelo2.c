@@ -3,17 +3,15 @@
 #include <stdlib.h>
 
 #define NTH 2
-#define MIN(x, y) (((x) < (y)) ? (x) : (y)) // Calcula minimo entre dos valores
-#define CAMINHOARQUIVO "Teste/grafo_1500.g" // Define caminho do arquivo
+#define MIN(x, y) (((x) < (y)) ? (x) : (y)) // Calcula minimo entre dos valores;
+#define CAMINHOARQUIVO "Teste/grafo_1500.g" // Define caminho do arquivo;
 
-int arrive[NTH];
-int cont[NTH];
-int tamMatriz = 0;
+// Variaiveis Globais;
 float **mat;
-int linhasThreads = 0;
+int linhasThreads, tamMatriz;
 pthread_barrier_t mybarrier;
 
-// Funcao para alocar matriz na memoria
+// Funcao para alocar matriz na memoria;
 float **alocmat(int lin, int col){
 	int i;
 	float **m;
@@ -24,6 +22,7 @@ float **alocmat(int lin, int col){
 	return m;
 }
 
+// Funcao para inicializar pesos da matrizes;
 void inicializaMatriz(int tamMatriz, float **mat){
 	int i, j;
 	for(i=1;i<tamMatriz;i++){
@@ -32,12 +31,13 @@ void inicializaMatriz(int tamMatriz, float **mat){
 				mat[i][j] = 0;
 			}
 			else {
-				mat[i][j] = 99999;
+				mat[i][j] = 999999;
 			}
 		}
 	}
 }
 
+// Funcao para mostrar a matriz para o usuario;
 void imprimeMatriz(int tamMatriz, float **mat){
 	int i, j;
 	for(i=1;i<tamMatriz;i++){
@@ -48,34 +48,28 @@ void imprimeMatriz(int tamMatriz, float **mat){
 	}
 }
 
+// Thread com Floyd Warshall
 void *do_job(void *arg){
 	int tid = (int)arg;
 	int i, j, k;
 	int maxLinha = ((int)arg+1) * linhasThreads;
 	int minLinha = maxLinha - linhasThreads + 1;
 	float **matB = alocmat(tamMatriz,tamMatriz);
-	//imprimeMatriz(tamMatriz, matB);
 	for(k=1;k<tamMatriz;k++){
 		matB = mat;
-		//printf("sou uma thread cuido da linha %i ate a %i na altura %i tamanho %i \n", minLinha, maxLinha, k, tamMatriz);
 		for(i=minLinha; i<=maxLinha; i++){
 			for(j=1; j<tamMatriz; j++){
 				mat[i][j] = MIN(matB[i][j], matB[i][k] + matB[k][j]);
 			}
 		}
-		//printf("Aguardando barreira\n");
 		pthread_barrier_wait(&mybarrier);
-		//printf("Passando barreira\n");
-		if(minLinha == 1){
-		 	printf("%i\n", k);
-		}
 	}
 }
 
 int main(){
 	FILE *arquivo;
 	char linha[100], penultimaLinha[100];
-	int posX, posY;
+	int i, posX, posY;
   	float peso;
 
 	// Realiza a abertura do arquivo
@@ -94,9 +88,8 @@ int main(){
 
 	mat=alocmat(tamMatriz,tamMatriz);
 
-	// Inicializa as matrizes
+	// Inicializa a matriz
 	inicializaMatriz(tamMatriz, mat);
-
 
 	// Realiza a leitura dos pesos de cada vertice
 	while (!feof(arquivo)){
@@ -109,37 +102,18 @@ int main(){
     // imprimeMatriz(tamMatriz, matB);
 
 	linhasThreads = (tamMatriz-1) / NTH;
-	clock_t Ticks[2];
-	Ticks[0] = clock();
+
 	pthread_t t[NTH];
-	int n, i;
 	pthread_barrier_init(&mybarrier, NULL, NTH);
 	for(i=0;i<NTH;i++){
-		arrive[i]=0;
-		cont[i]=0;
 		pthread_create(&t[i],NULL,do_job,(void*)i);
 	}
-	// for(n=0;n<tamMatriz-1;n++){
-	// 	for(i=0;i<NTH;i++){
-	// 		while(arrive[i]!=1);
-	// 		arrive[i]=0;
-	// 	}
-	// 	// printf("%i\n", n);
-	// 	matB = mat;
-	// 	for(i=0;i<NTH;i++){
-	// 		cont[i]=1;
-	// 	}
-	// }		
 
 	for(i=0;i<NTH;i++){
 		pthread_join(t[i], NULL);
 	}
-	Ticks[1] = clock();
-	double Tempo = (Ticks[1] - Ticks[0]) * 1000.0 / CLOCKS_PER_SEC;
-	printf("Tempo gasto: %g ms.", Tempo);
-	getchar();
+	
 	imprimeMatriz(tamMatriz, mat);
 
 	pthread_exit(NULL);
-
 }
