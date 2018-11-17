@@ -13,7 +13,7 @@
 */
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y)) // Calcula minimo entre dos valores
-#define CAMINHOARQUIVO "Teste/grafo_500.g" // Define caminho do arquivo
+#define CAMINHOARQUIVO "Teste/grafo_2000.g" // Define caminho do arquivo
 
 // Funcao para alocar matriz na memoria
 float **alocmat(int lin, int col){
@@ -55,7 +55,7 @@ void floydWarshall(int tamMatriz, float **mat, float **matB){
 	int i, j, k;
 	for(k=1; k<tamMatriz; k++){
 		matB = mat;
-		// printf("%i\n", k);
+		printf("%i\n", k);
 		for(i=1; i<tamMatriz; i++){
 			for(j=1; j<tamMatriz; j++){
 				mat[i][j] = MIN(matB[i][j], matB[i][k] + matB[k][j]);
