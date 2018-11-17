@@ -1,8 +1,19 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <sys/time.h>
+#include <time.h>
 
-#define NTH 2
+/*
+*	Trabalho de Compiladores Floyd Warshall
+*	Alunos:
+*		Frank Tamborelli		RA: 94116
+*		Gustavo Mendonca Dias	RA: 88410
+*		Matheus Colares 		RA: 92760
+*		Tatiane Paz				RA: 85
+*/
+
+#define NTH 4
 #define MIN(x, y) (((x) < (y)) ? (x) : (y)) // Calcula minimo entre dos valores;
 #define CAMINHOARQUIVO "Teste/grafo_1500.g" // Define caminho do arquivo;
 
@@ -49,7 +60,7 @@ void imprimeMatriz(int tamMatriz, float **mat){
 }
 
 // Thread com Floyd Warshall
-void *do_job(void *arg){
+void *thread_Warshall(void *arg){
 	int tid = (int)arg;
 	int i, j, k;
 	int maxLinha = ((int)arg+1) * linhasThreads;
@@ -74,9 +85,11 @@ int main(){
 
 	// Realiza a abertura do arquivo
 	if ((arquivo = fopen(CAMINHOARQUIVO, "r")) == NULL){
-        printf("Erro na abertura do arquivo \n");
+        printf("Erro na abertura do arquivo. Por favor verifique o caminho do arquivo. \n");
         exit(1);
     }
+
+	printf("Arquivo localizado com sucesso.\nExecutando leitura do arquivo e configuracoes iniciais ...\n");
     
 	// Obtem tamanho da matriz
 	do {
@@ -99,21 +112,28 @@ int main(){
 		fgets(linha, 100, arquivo);
 		mat[posX][posY] = peso;
   	}
-    // imprimeMatriz(tamMatriz, matB);
 
 	linhasThreads = (tamMatriz-1) / NTH;
 
+	printf("Leitura realizada com sucesso.\n");
+	printf("Iniciando algoritmo Floyd Warshall ...\n");
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
 	pthread_t t[NTH];
 	pthread_barrier_init(&mybarrier, NULL, NTH);
 	for(i=0;i<NTH;i++){
-		pthread_create(&t[i],NULL,do_job,(void*)i);
+		pthread_create(&t[i],NULL,thread_Warshall,(void*)i);
 	}
 
 	for(i=0;i<NTH;i++){
 		pthread_join(t[i], NULL);
 	}
-	
+	gettimeofday(&tv2, NULL);
+	printf("Execucao Floyd Warshall concluida.\nApresentando resultados ...\n");
+
 	imprimeMatriz(tamMatriz, mat);
 
+	printf("Tempo de Execucao do Floyd Warshall paralelo: %.2fs, para essa performance foram utilizadas %i threads.\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec), NTH);
 	pthread_exit(NULL);
 }

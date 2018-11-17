@@ -1,27 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
+#include <sys/time.h>
+#include <time.h>
 
 /*
 *	Trabalho de Compiladores Floyd Warshall
 *	Alunos:
-*		Frank Tamborelli		RA:
+*		Frank Tamborelli		RA: 94116
 *		Gustavo Mendonca Dias	RA: 88410
-*		Matheus Colares 		RA: 
-*		Tatiane Paz				RA: 
+*		Matheus Colares 		RA: 92760
+*		Tatiane Paz				RA: 85
 */
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y)) // Calcula minimo entre dos valores
-#define CAMINHOARQUIVO "Teste/grafo_500.g" // Define caminho do arquivo
-
-float **mat;
-float **matB;
-int tamMatriz;
-int i, j, k;
+#define CAMINHOARQUIVO "Teste/grafo_1500.g" // Define caminho do arquivo
 
 // Funcao para alocar matriz na memoria
 float **alocmat(int lin, int col){
+	int i;
 	float **m;
 	m=(float**)malloc(sizeof(float*)*lin);
 	for(i=0;i<lin;i++){
@@ -31,6 +28,7 @@ float **alocmat(int lin, int col){
 }
 
 void inicializaMatriz(int tamMatriz, float **mat){
+	int i, j;
 	for(i=1;i<tamMatriz;i++){
 		for(j=1;j<tamMatriz;j++){
 			if(i == j) {
@@ -43,7 +41,8 @@ void inicializaMatriz(int tamMatriz, float **mat){
 	}
 }
 
-void imprimeMatriz(){
+void imprimeMatriz(int tamMatriz, float **mat){
+	int i, j;
 	for(i=1;i<tamMatriz;i++){
 		for(j=1;j<tamMatriz;j++){
 			printf("%f \t", mat[i][j]);
@@ -52,28 +51,16 @@ void imprimeMatriz(){
 	}
 }
 
-void *thread_hello(void *arg){
-	int coluna;
-	int linha = (int)arg;
-	// printf("executando thread k = %i, linha = %i, coluna = %i\n", k, linha, coluna);
-	for(coluna=1; coluna<tamMatriz; coluna++){
-		mat[linha][coluna] = MIN(mat[linha][coluna], matB[linha][k] + matB[k][coluna]);
-	}
-	pthread_exit(0);
-}
-
 // Calcula menor caminho entre os vertices da matriz
-void floydWarshall(){
-	pthread_t *t=(pthread_t*)malloc(tamMatriz*sizeof(pthread_t));
+void floydWarshall(int tamMatriz, float **mat, float **matB){
+	int i, j, k;
 	for(k=1; k<tamMatriz; k++){
 		matB = mat;
 		// printf("%i\n", k);
 		for(i=1; i<tamMatriz; i++){
-			//printf("criei a thread %i\n", i);
-			pthread_create(&t[i],NULL,thread_hello,(void*)i);
-		}
-		for(i=1; i<tamMatriz; i++){
-			pthread_join(t[i],NULL);
+			for(j=1; j<tamMatriz; j++){
+				mat[i][j] = MIN(matB[i][j], matB[i][k] + matB[k][j]);
+			}
 		}
 	}
 }
@@ -81,7 +68,7 @@ void floydWarshall(){
 int main(){
 	FILE *arquivo;
 	char linha[100], penultimaLinha[100];
-	int posX, posY;
+	int k, i, j, tamMatriz, posX, posY;
   	float peso;
 
 	// Realiza a abertura do arquivo
@@ -99,8 +86,8 @@ int main(){
 	tamMatriz = atoi(penultimaLinha)+1; // Transforma tamanho da matriz para int
 
 	// Aloca memoria para matrizes
-	mat=alocmat(tamMatriz,tamMatriz);
-	matB=alocmat(tamMatriz,tamMatriz);
+	float **mat=alocmat(tamMatriz,tamMatriz);
+	float **matB=alocmat(tamMatriz,tamMatriz);
 
 	// Inicializa as matrizes
 	inicializaMatriz(tamMatriz, mat);
@@ -114,14 +101,16 @@ int main(){
 		fgets(linha, 100, arquivo);
 		mat[posX][posY] = peso;
   	}
-	clock_t Ticks[2];
-	Ticks[0] = clock();
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+
 	floydWarshall(tamMatriz, mat, matB);
-	Ticks[1] = clock();
-	double Tempo = (Ticks[1] - Ticks[0]) * 1000.0 / CLOCKS_PER_SEC;
-	printf("Tempo gasto: %g ms.", Tempo);
-	gets();
+
+	gettimeofday(&tv2, NULL);
 
 	imprimeMatriz(tamMatriz, mat);
+	
+	printf("Tempo de Execucao do Floyd Warshall paralelo: %.2fs, para essa performance foram utilizado o paralelo.\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec));
 
 }
