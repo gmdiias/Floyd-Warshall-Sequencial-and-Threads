@@ -1,18 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
+#include <time.h>
 
 /*
 *	Trabalho de Compiladores Floyd Warshall
 *	Alunos:
-*		Frank Tamborelli		RA:
+*		Frank Tamborelli		RA: 94116
 *		Gustavo Mendonca Dias	RA: 88410
-*		Matheus Colares 		RA: 
-*		Tatiane Paz				RA: 
+*		Matheus Colares 		RA: 92760
+*		Tatiane Paz				RA: 85
 */
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y)) // Calcula minimo entre dos valores
-#define CAMINHOARQUIVO "grafo_500.g" // Define caminho do arquivo
+#define CAMINHOARQUIVO "Teste/grafo_1500.g" // Define caminho do arquivo
 
 // Funcao para alocar matriz na memoria
 float **alocmat(int lin, int col){
@@ -54,6 +56,7 @@ void floydWarshall(int tamMatriz, float **mat, float **matB){
 	int i, j, k;
 	for(k=1; k<tamMatriz; k++){
 		matB = mat;
+		// printf("%i\n", k);
 		for(i=1; i<tamMatriz; i++){
 			for(j=1; j<tamMatriz; j++){
 				mat[i][j] = MIN(matB[i][j], matB[i][k] + matB[k][j]);
@@ -98,9 +101,16 @@ int main(){
 		fgets(linha, 100, arquivo);
 		mat[posX][posY] = peso;
   	}
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
 
 	floydWarshall(tamMatriz, mat, matB);
 
+	gettimeofday(&tv2, NULL);
+
 	imprimeMatriz(tamMatriz, mat);
+	
+	printf("Tempo de Execucao do Floyd Warshall paralelo: %.2fs, para essa performance foram utilizado o paralelo.\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec));
 
 }
