@@ -64,7 +64,7 @@ void floydWarshall(int tamMatriz, float **mat, float **matB){
 	}
 }
 
-int main(){
+int main(int argc, char *argv[ ]){
 	FILE *arquivo;
 	char caminhoArquivo[100], linha[100], penultimaLinha[100];
 	int k, i, j, tamMatriz, posX, posY;
@@ -72,10 +72,12 @@ int main(){
 
 	printf("ALGORITMO FLOYD WARSHALL SEQUENCIAL \n");
 
-	printf("Informe o caminho do arquivo: ");
-	scanf("%s", &caminhoArquivo);
+	// printf("Informe o caminho do arquivo: ");
+	// scanf("%s", &caminhoArquivo);
 
-	struct timeval  tv1, tv2; // Utilizado para calcular o tempo de execucao do algoritmo Floyd Warshall;
+	strcpy(caminhoArquivo, argv[1]);
+
+	struct timeval  tv1, tv2; // Utilizado para calcular o tempo de execucao do algoritmo;
 	gettimeofday(&tv1, NULL);
 
 	// Realiza a abertura do arquivo
@@ -83,6 +85,8 @@ int main(){
         printf("Erro na abertura do arquivo \n");
         exit(1);
     }
+
+	printf("Arquivo localizado com sucesso.\nExecutando leitura do arquivo e configuracoes iniciais ...\n");
     
 	// Obtem tamanho da matriz
 	do {
@@ -91,7 +95,7 @@ int main(){
 	} while (strcmp(linha, "#arestas\n") != 0);
 
 	tamMatriz = atoi(penultimaLinha)+1; // Transforma tamanho da matriz para int
-
+	
 	// Aloca memoria para matrizes
 	float **mat=alocmat(tamMatriz,tamMatriz);
 	float **matB=alocmat(tamMatriz,tamMatriz);
@@ -109,6 +113,9 @@ int main(){
 		mat[posX][posY] = peso;
   	}
 
+	printf("Leitura realizada com sucesso.\n");
+	printf("Iniciando algoritmo Floyd Warshall ...\n");
+
 	floydWarshall(tamMatriz, mat, matB);
 
 	printf("Execucao Floyd Warshall concluida.\nApresentando resultados ...\n");
@@ -120,4 +127,12 @@ int main(){
 	printf("Tempo de Execucao do Floyd Warshall paralelo: %.2fs, para essa performance foram utilizado o sequencial com arquivo %s.\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec), caminhoArquivo);
 
+	// Grava o resultado da execucao em um arquivo para poder ser executado script
+	FILE *arquivoResultado;
+	//abrindo o arquivo
+	arquivoResultado = fopen("resultado.txt", "a+");
+	fprintf(arquivoResultado, "SEQUENCIAL / ARQUIVO %s / TEMPO EXECUCAO: %.3fs$\n\n", caminhoArquivo, (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec));
+	// fechando arquivo
+	fclose(arquivoResultado);
 }

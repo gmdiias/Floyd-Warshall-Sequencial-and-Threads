@@ -76,21 +76,21 @@ void *thread_Warshall(void *arg){
 	}
 }
 
-int main(){
+int main(int argc, char *argv[ ]){
 
 	FILE *arquivo;
 	char caminhoArquivo[100], linha[100], penultimaLinha[100];
 	int i, posX, posY, numThreads;
   	float peso;
 
+	numThreads = atoi(argv[1]);
+  	strcpy(caminhoArquivo, argv[2]);
+
+
 	printf("ALGORITMO FLOYD WARSHALL UTILIZANDO THREADS \n");
-	printf("Informe a quantidade de threads que deseja utilizar: ");
-	scanf("%i", &numThreads);
 
-	printf("Informe o caminho do arquivo: ");
-	scanf("%s", &caminhoArquivo);
 
-	struct timeval  tv1, tv2; // Utilizado para calcular o tempo de execucao do algoritmo Floyd Warshall;
+	struct timeval  tv1, tv2; // Utilizado para calcular o tempo de execucao do algoritmo;
 	gettimeofday(&tv1, NULL);
 	
 	// Realiza a abertura do arquivo
@@ -127,7 +127,6 @@ int main(){
 
 	printf("Leitura realizada com sucesso.\n");
 	printf("Iniciando algoritmo Floyd Warshall ...\n");
-	
 
 	pthread_t t[numThreads];
 	pthread_barrier_init(&mybarrier, NULL, numThreads); // Realiza a inicializacao da barreira;
@@ -145,7 +144,15 @@ int main(){
 
 	gettimeofday(&tv2, NULL);
 
-	printf("Tempo de Execucao do Floyd Warshall paralelo: %.2fs, para essa performance foram utilizadas %i threads e o arquivo %s.\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+	printf("Tempo de Execucao do Floyd Warshall paralelo: %.3fs, para essa performance foram utilizadas %i threads e o arquivo %s.\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec), numThreads, caminhoArquivo);
-	pthread_exit(NULL);
+
+	// Grava o resultado da execucao em um arquivo para poder ser executado script
+	FILE *arquivoResultado;
+	//abrindo o arquivo
+	arquivoResultado = fopen("resultado.txt", "a+");
+	fprintf(arquivoResultado, "PARALELO / ARQUIVO %s / %i THREADS / TEMPO EXECUCAO: %.3fs$\n\n", caminhoArquivo, numThreads, (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec));
+	// fechando arquivo
+	fclose(arquivoResultado);
 }
