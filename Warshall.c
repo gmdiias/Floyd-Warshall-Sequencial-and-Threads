@@ -10,11 +10,10 @@
 *		Frank Tamborelli		RA: 94116
 *		Gustavo Mendonca Dias	RA: 88410
 *		Matheus Colares 		RA: 92760
-*		Tatiane Paz				RA: 85
+*		Tatiane Paz				RA: 89354
 */
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y)) // Calcula minimo entre dos valores
-#define CAMINHOARQUIVO "Teste/grafo_1500.g" // Define caminho do arquivo
 
 // Funcao para alocar matriz na memoria
 float **alocmat(int lin, int col){
@@ -67,12 +66,20 @@ void floydWarshall(int tamMatriz, float **mat, float **matB){
 
 int main(){
 	FILE *arquivo;
-	char linha[100], penultimaLinha[100];
+	char caminhoArquivo[100], linha[100], penultimaLinha[100];
 	int k, i, j, tamMatriz, posX, posY;
   	float peso;
 
+	printf("ALGORITMO FLOYD WARSHALL SEQUENCIAL \n");
+
+	printf("Informe o caminho do arquivo: ");
+	scanf("%s", &caminhoArquivo);
+
+	struct timeval  tv1, tv2; // Utilizado para calcular o tempo de execucao do algoritmo Floyd Warshall;
+	gettimeofday(&tv1, NULL);
+
 	// Realiza a abertura do arquivo
-	if ((arquivo = fopen(CAMINHOARQUIVO, "r")) == NULL){
+	if ((arquivo = fopen(caminhoArquivo, "r")) == NULL){
         printf("Erro na abertura do arquivo \n");
         exit(1);
     }
@@ -101,16 +108,16 @@ int main(){
 		fgets(linha, 100, arquivo);
 		mat[posX][posY] = peso;
   	}
-	struct timeval  tv1, tv2;
-	gettimeofday(&tv1, NULL);
 
 	floydWarshall(tamMatriz, mat, matB);
 
-	gettimeofday(&tv2, NULL);
+	printf("Execucao Floyd Warshall concluida.\nApresentando resultados ...\n");
 
 	imprimeMatriz(tamMatriz, mat);
 	
-	printf("Tempo de Execucao do Floyd Warshall paralelo: %.2fs, para essa performance foram utilizado o paralelo.\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-         (double) (tv2.tv_sec - tv1.tv_sec));
+	gettimeofday(&tv2, NULL);
+	
+	printf("Tempo de Execucao do Floyd Warshall paralelo: %.2fs, para essa performance foram utilizado o sequencial com arquivo %s.\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec), caminhoArquivo);
 
 }

@@ -10,12 +10,10 @@
 *		Frank Tamborelli		RA: 94116
 *		Gustavo Mendonca Dias	RA: 88410
 *		Matheus Colares 		RA: 92760
-*		Tatiane Paz				RA: 85
+*		Tatiane Paz				RA: 89354
 */
 
-#define NTH 4
 #define MIN(x, y) (((x) < (y)) ? (x) : (y)) // Calcula minimo entre dos valores;
-#define CAMINHOARQUIVO "Teste/grafo_1500.g" // Define caminho do arquivo;
 
 // Variaiveis Globais;
 float **mat;
@@ -59,12 +57,12 @@ void imprimeMatriz(int tamMatriz, float **mat){
 	}
 }
 
-// Thread com Floyd Warshall
+// Thread com Floyd Warshall;
 void *thread_Warshall(void *arg){
-	int tid = (int)arg;
+	int tid = (int)arg; // Thread ID;
 	int i, j, k;
-	int maxLinha = ((int)arg+1) * linhasThreads;
-	int minLinha = maxLinha - linhasThreads + 1;
+	int maxLinha = ((int)arg+1) * linhasThreads; // Calcula o limite superior de linhas que deve ser calculado por essa thread;
+	int minLinha = maxLinha - linhasThreads + 1; // Calcula o limite inferior de linhas que deve ser calculado por essa thread;
 	float **matB = alocmat(tamMatriz,tamMatriz);
 	for(k=1;k<tamMatriz;k++){
 		matB = mat;
@@ -73,18 +71,30 @@ void *thread_Warshall(void *arg){
 				mat[i][j] = MIN(matB[i][j], matB[i][k] + matB[k][j]);
 			}
 		}
+		// Barreira, ao atingir a barreira a thread espera ate que todas as outras tambem atinjam a barreira para prosseguir;
 		pthread_barrier_wait(&mybarrier);
 	}
 }
 
 int main(){
+
 	FILE *arquivo;
-	char linha[100], penultimaLinha[100];
-	int i, posX, posY;
+	char caminhoArquivo[100], linha[100], penultimaLinha[100];
+	int i, posX, posY, numThreads;
   	float peso;
 
+	printf("ALGORITMO FLOYD WARSHALL UTILIZANDO THREADS \n");
+	printf("Informe a quantidade de threads que deseja utilizar: ");
+	scanf("%i", &numThreads);
+
+	printf("Informe o caminho do arquivo: ");
+	scanf("%s", &caminhoArquivo);
+
+	struct timeval  tv1, tv2; // Utilizado para calcular o tempo de execucao do algoritmo Floyd Warshall;
+	gettimeofday(&tv1, NULL);
+	
 	// Realiza a abertura do arquivo
-	if ((arquivo = fopen(CAMINHOARQUIVO, "r")) == NULL){
+	if ((arquivo = fopen(caminhoArquivo, "r")) == NULL){
         printf("Erro na abertura do arquivo. Por favor verifique o caminho do arquivo. \n");
         exit(1);
     }
@@ -113,27 +123,29 @@ int main(){
 		mat[posX][posY] = peso;
   	}
 
-	linhasThreads = (tamMatriz-1) / NTH;
+	linhasThreads = (tamMatriz-1) / numThreads; // Calcula quantas linhas das matrizes cada thread ira ser responsavel;
 
 	printf("Leitura realizada com sucesso.\n");
 	printf("Iniciando algoritmo Floyd Warshall ...\n");
-	struct timeval  tv1, tv2;
-	gettimeofday(&tv1, NULL);
-	pthread_t t[NTH];
-	pthread_barrier_init(&mybarrier, NULL, NTH);
-	for(i=0;i<NTH;i++){
+	
+
+	pthread_t t[numThreads];
+	pthread_barrier_init(&mybarrier, NULL, numThreads); // Realiza a inicializacao da barreira;
+	for(i=0;i<numThreads;i++){
 		pthread_create(&t[i],NULL,thread_Warshall,(void*)i);
 	}
 
-	for(i=0;i<NTH;i++){
+	for(i=0;i<numThreads;i++){
 		pthread_join(t[i], NULL);
 	}
-	gettimeofday(&tv2, NULL);
+
 	printf("Execucao Floyd Warshall concluida.\nApresentando resultados ...\n");
 
 	imprimeMatriz(tamMatriz, mat);
 
-	printf("Tempo de Execucao do Floyd Warshall paralelo: %.2fs, para essa performance foram utilizadas %i threads.\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-         (double) (tv2.tv_sec - tv1.tv_sec), NTH);
+	gettimeofday(&tv2, NULL);
+
+	printf("Tempo de Execucao do Floyd Warshall paralelo: %.2fs, para essa performance foram utilizadas %i threads e o arquivo %s.\n", (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec), numThreads, caminhoArquivo);
 	pthread_exit(NULL);
 }
